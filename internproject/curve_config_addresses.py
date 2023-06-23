@@ -2,6 +2,7 @@ from internproject.constants import eth_client
 
 from dataclasses import dataclass
 
+
 @dataclass
 class CurveCollectorConfig:
     """
