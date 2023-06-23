@@ -12,4 +12,3 @@ ROOT_DIR = Path(__file__).parent.parent
 ROOT_DATA_DIR = ROOT_DIR / "data"
 
 eth_client = Web3(Web3.HTTPProvider(ALCHEMY_URL))
-
