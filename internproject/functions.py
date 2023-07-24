@@ -319,3 +319,11 @@ def total_token_supply_vs_reward_rate(stETH_ETH_apr_df, stETH_ETH_incentive_rewa
     fig.update_yaxes(title_text='reward rate eth', secondary_y=True)
     fig.update_layout(title='LP Token Total Supply vs. Reward Rate ETH')
     fig.show() 
+
+
+
+# calculate number of total unique users in a pool 
+def num_unique_users(transfer_df):
+    num_total_unique_users = transfer_df['user'].nunique()
+    num_total_unique_users
+    print("Total number of unique users: {}".format(num_total_unique_users))
