@@ -129,7 +129,8 @@ def combine_liquidity():
 
 
 # finding users who first added and first removed 
-def users_first_add_and_remove(transfer_df): 
+def users_first_add_and_remove(): 
+    transfer_df = combine_liquidity()
     # finding those who withdrew before adding 
     users_first_add = transfer_df[transfer_df['value'] > 0].groupby('user')[['timestamp']].min()
     users_first_add.columns = ['date_added']
@@ -157,7 +158,9 @@ def users_first_add_and_remove(transfer_df):
 # whales 
 # you can change the y_column in line 204 to simply "reward_rate" if you want the reward rate 
 # in terms of LDO instead of eth, which is the default 
-def whale_analysis(transfer_df, stETH_ETH_incentive_rewards_df):
+def whale_analysis():
+    add_lp, remove_lp, lp_transfers, stETH_ETH_incentive_rewards_df = read_parquet_files()
+    transfer_df = combine_liquidity()
     transfer_df.sort_index(inplace=True)
     transfer_df['cumsol_col'] = transfer_df.groupby(['user'])['value'].cumsum() 
     whale_df = transfer_df.loc[transfer_df['cumsol_col'] > 50000]
@@ -213,7 +216,8 @@ def whale_analysis(transfer_df, stETH_ETH_incentive_rewards_df):
 
 
 # elasticity for LP's who added over 100 eth 
-def lp_over_100(add_lp, stETH_ETH_apr_df):
+def lp_over_100(stETH_ETH_apr_df):
+    add_lp, _, _, _ = read_parquet_files()
     add_lp['date'] = pd.to_datetime(add_lp['timestamp'].dt.date)
     merged_df = pd.merge(add_lp, stETH_ETH_apr_df, left_on='date', right_on='timestamp', how='left') 
     merged_df.set_index('date', inplace=True)
@@ -245,7 +249,9 @@ def lp_over_100(add_lp, stETH_ETH_apr_df):
 
 
 # number of transations that top 21 whales took part in (both add and withdraw liquidity behaviors)
-def num_transctions(transfer_df, lp_transfers):
+def num_transactions():
+    transfer_df = combine_liquidity()
+    lp_transfers = pd.read_parquet(ROOT_DATA_DIR / "stETH_ETH_lp_transfers.parquet")
     add_liquidity_transfers = lp_transfers[lp_transfers["from"] == NULL_ADDRESS]
     withdraw_liquidity_transfers = lp_transfers[lp_transfers["to"] == NULL_ADDRESS]
     added = add_liquidity_transfers[add_liquidity_transfers['to'] == '0x43DfFbF34C06EAf9Cd1F9B4c6848b0F1891434b3']
@@ -262,9 +268,11 @@ def num_transctions(transfer_df, lp_transfers):
 
 
 # aggregate behavior of multiple whales
-def aggregate_whale_behavior(transfer_df, stETH_ETH_incentive_rewards_df, stETH_ETH_apr_df): 
+def aggregate_whale_behavior(stETH_ETH_incentive_rewards_df, stETH_ETH_apr_df): 
+    transfer_df = combine_liquidity()
     incentive_rewards_filtered = stETH_ETH_incentive_rewards_df.loc[stETH_ETH_incentive_rewards_df.index.isin(stETH_ETH_apr_df.index)]
     # get the whales you are interested in. Make sure to change this to exclude the wallets that used the zapper
+    transfer_df['cumsol_col'] = transfer_df.groupby(['user'])['value'].cumsum() 
     top_whales = transfer_df.groupby('user')[['cumsol_col']].max().sort_values('cumsol_col').tail(15)
 
     # get the subset of transactions they are involved in. Only get adds or withdrawal liquidity
@@ -323,7 +331,8 @@ def total_token_supply_vs_reward_rate(stETH_ETH_apr_df, stETH_ETH_incentive_rewa
 
 
 # calculate number of total unique users in a pool 
-def num_unique_users(transfer_df):
+def num_unique_users():
+    transfer_df = combine_liquidity()
     num_total_unique_users = transfer_df['user'].nunique()
     num_total_unique_users
     print("Total number of unique users: {}".format(num_total_unique_users))
