@@ -10,7 +10,7 @@ from plotly.subplots import make_subplots
 ZAPPER_ADDRESS = '0x271fbE8aB7f1fB262f81C77Ea5303F03DA9d3d6A'
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-# read into data of chosen dataframes 
+# 1. read into data of chosen dataframes 
 def read_file(file_path):
     ROOT_DIR = Path(__file__).parent.parent
     ROOT_DATA_DIR = ROOT_DIR / "data"     
@@ -20,7 +20,7 @@ def read_file(file_path):
     data_frame = pd.read_csv(file_path, index_col=0, parse_dates=True)
     return data_frame
 
-# market eth tvl vs raw incentive apr graphs 
+# 2. market eth tvl vs raw incentive apr graphs 
 def market_tvl_vs_apr(data_frame): 
     x_col = data_frame['raw_incentive_apr']
     y_col = data_frame['market_eth_tvl']
@@ -29,7 +29,7 @@ def market_tvl_vs_apr(data_frame):
     fig.show() 
 
 
-# market eth tvl and raw incentive apr graphed against time with appropriate scales 
+# 3. market eth tvl and raw incentive apr graphed against time with appropriate scales 
 def apr_and_tvl_against_time(data_frame): 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     primary_y_col = 'market_eth_tvl'
@@ -57,7 +57,7 @@ def apr_and_tvl_against_time(data_frame):
 
 
 
-# benchmark elasticities for all asset pairs 
+# 4. benchmark elasticities for asset pairs 
 def calculate_elasticity(data_frame): 
     # Set price as APR measurement and smoothen it
     data_frame['cur_naive_apr'] = data_frame[['raw_base_apr', 'raw_fee_apr', 'raw_incentive_apr', 'raw_price_apr']].sum(axis=1)
@@ -82,19 +82,19 @@ def calculate_elasticity(data_frame):
 
     return data_frame
 
-
+# 5. show elasticity graphs 
 def plot_elasticity(data_frame): 
     fig = px.line(data_frame['elasticity'])
     fig.show() 
 
 
-# market eth tvl against rolling cur apr 
+# 6. market eth tvl against rolling cur apr 
 def tvl_vs_raw_base_apr(data_frame):
     fig = px.scatter(data_frame, x='market_eth_tvl', y='rolling_cur_naive_apr')
     fig.show() 
 
 
-# read parquet files   
+# 7. read parquet files   
 def read_parquet_files():
 
     add_lp = pd.read_parquet(ROOT_DATA_DIR / "stETH_ETH_add_lp.parquet")
@@ -105,7 +105,7 @@ def read_parquet_files():
     return add_lp, remove_lp, lp_transfers, stETH_ETH_incentive_rewards_df
 
 
-# plot reward rates from parquet files (only includes stETH_ETH data)
+# 8. plot reward rates from parquet files (only includes stETH_ETH data)
 def plot_reward_rate(stETH_ETH_incentive_rewards_df):
     fig = px.line(stETH_ETH_incentive_rewards_df['reward_rate'])
     fig.show() 
@@ -114,7 +114,7 @@ def plot_reward_rate_eth(stETH_ETH_incentive_rewards_df):
     fig = px.line(stETH_ETH_incentive_rewards_df['reward_rate_eth'])
     fig.show() 
 
-# create transfer df that takes in both add_lp and withdraw_lp 
+# 9. create transfer df that takes in both add_lp and withdraw_lp 
 def combine_liquidity():
     lp_transfers = pd.read_parquet(ROOT_DATA_DIR / "stETH_ETH_lp_transfers.parquet")
     add_liquidity_transfers = lp_transfers[lp_transfers["from"] == NULL_ADDRESS]
@@ -128,7 +128,7 @@ def combine_liquidity():
     return transfer_df
 
 
-# finding users who first added and first removed 
+# 10. finding users who first added and first removed 
 def users_first_add_and_remove(): 
     transfer_df = combine_liquidity()
     # finding those who withdrew before adding 
@@ -155,7 +155,7 @@ def users_first_add_and_remove():
     transfer_df[transfer_df['user'] == users_who_removed_before_they_added[0]][['from', 'to', 'value']]
 
 
-# whales 
+# 11. whales 
 # you can change the y_column in line 204 to simply "reward_rate" if you want the reward rate 
 # in terms of LDO instead of eth, which is the default 
 def whale_analysis():
@@ -215,7 +215,7 @@ def whale_analysis():
         fig.show()
 
 
-# elasticity for LP's who added over 100 eth 
+# 12. elasticity for LP's who added over 100 eth 
 def lp_over_100(stETH_ETH_apr_df):
     add_lp, _, _, _ = read_parquet_files()
     add_lp['date'] = pd.to_datetime(add_lp['timestamp'].dt.date)
@@ -248,7 +248,7 @@ def lp_over_100(stETH_ETH_apr_df):
     fig.show()
 
 
-# number of transations that top 21 whales took part in (both add and withdraw liquidity behaviors)
+# 13. number of transations that top 21 whales took part in (both add and withdraw liquidity behaviors)
 def num_transactions():
     transfer_df = combine_liquidity()
     lp_transfers = pd.read_parquet(ROOT_DATA_DIR / "stETH_ETH_lp_transfers.parquet")
@@ -267,7 +267,7 @@ def num_transactions():
         print(i + 1, ":", whale, num_transactions)
 
 
-# aggregate behavior of multiple whales
+# 14. aggregate behavior of multiple whales
 def aggregate_whale_behavior(stETH_ETH_incentive_rewards_df, stETH_ETH_apr_df): 
     transfer_df = combine_liquidity()
     incentive_rewards_filtered = stETH_ETH_incentive_rewards_df.loc[stETH_ETH_incentive_rewards_df.index.isin(stETH_ETH_apr_df.index)]
@@ -305,7 +305,7 @@ def aggregate_whale_behavior(stETH_ETH_incentive_rewards_df, stETH_ETH_apr_df):
 
 
 
-# total lp token supply vs reward rate eth 
+# 15. total lp token supply vs reward rate eth 
 def total_token_supply_vs_reward_rate(stETH_ETH_apr_df, stETH_ETH_incentive_rewards_df): 
 
     merged_df = pd.merge_asof(stETH_ETH_apr_df, stETH_ETH_incentive_rewards_df['reward_rate'], left_index=True, right_index=True)
@@ -330,7 +330,7 @@ def total_token_supply_vs_reward_rate(stETH_ETH_apr_df, stETH_ETH_incentive_rewa
 
 
 
-# calculate number of total unique users in a pool 
+# 16. calculate number of total unique users in a pool 
 def num_unique_users():
     transfer_df = combine_liquidity()
     num_total_unique_users = transfer_df['user'].nunique()
